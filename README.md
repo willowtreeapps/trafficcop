@@ -1,7 +1,7 @@
 Traffic Cop
 ==========
 
-Monitor your Android apps' data usage so you can take action if it's over a threshold.
+Monitor your Android app's data usage so you can take action if it's over a threshold.
 
 ### Usage
 Use `TrafficCop.Builder` to create an insance to use throughout your app. (Usually in your Application sublcass).
@@ -50,7 +50,7 @@ public class MyBaseActivity extends Activity {
 }
 ```
 
-Alternatively, you an just register a lifecycle callback.
+Alternatively, you can just register a lifecycle callback.
 ```java
 public class MyApplication extends Application {
   public void onCreate() {
