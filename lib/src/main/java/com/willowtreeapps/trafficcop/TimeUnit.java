@@ -1,7 +1,7 @@
 package com.willowtreeapps.trafficcop;
 
 /**
- * Created by evantatarka on 10/7/14.
+ * A time unit with the base of seconds.
  */
 public enum TimeUnit {
     SECOND(1), SECONDS(1),
@@ -16,6 +16,12 @@ public enum TimeUnit {
         this.scale = scale;
     }
 
+    /**
+     * Converts the value from this unit to seconds
+     *
+     * @param value the time in this unit
+     * @return the time in seconds
+     */
     public int of(int value) {
         return value * scale;
     }

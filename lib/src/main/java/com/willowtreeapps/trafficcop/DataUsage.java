@@ -1,11 +1,22 @@
 package com.willowtreeapps.trafficcop;
 
 /**
- * Created by evantatarka on 10/7/14.
+ * The data usage that went over a threshold.
  */
 public class DataUsage {
+    /**
+     * The type of data usage, can be {@link Type#DOWNLOAD} or {@link Type#UPLOAD}.
+     */
     public final Type type;
+
+    /**
+     * The number of bytes used in the period.
+     */
     public final long bytes;
+
+    /**
+     * The number of seconds for the time period.
+     */
     public final int seconds;
 
     DataUsage(Type type, long bytes, int seconds) {
@@ -26,10 +37,20 @@ public class DataUsage {
         DOWNLOAD, UPLOAD
     }
 
+    /**
+     * Returns a useful warning message that you can use for logging, etc.
+     *
+     * @return the warning message
+     */
     public String getWarningMessage() {
         return "Warning! You have used " + getHumanReadableSize() + " in " + getHumanReadableTimespan() + ".";
     }
 
+    /**
+     * Returns the size in human-readable units, for example "10 kilobytes" or "12 gigabytes".
+     *
+     * @return the human-readable size
+     */
     public String getHumanReadableSize() {
         if (bytes < 1000) {
             return bytes + " bytes";
@@ -43,6 +64,11 @@ public class DataUsage {
         return (bytes / (1000 * 1000 * 1000)) + " gigabytes";
     }
 
+    /**
+     * Returns the timespan in human-readable units, for example "12 seconds" or "2 days".
+     *
+     * @return the human-readable timespan
+     */
     public String getHumanReadableTimespan() {
         if (seconds < 60) {
             return seconds + " seconds";

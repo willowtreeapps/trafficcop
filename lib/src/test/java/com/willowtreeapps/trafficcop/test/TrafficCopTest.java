@@ -1,7 +1,7 @@
 package com.willowtreeapps.trafficcop.test;
 
 import com.willowtreeapps.trafficcop.DataUsage;
-import com.willowtreeapps.trafficcop.DataUsageAlertAdapter;
+import com.willowtreeapps.trafficcop.DataUsageAlertListener;
 import com.willowtreeapps.trafficcop.TrafficCop;
 import com.willowtreeapps.trafficcop.Threshold;
 import com.willowtreeapps.trafficcop.test.helpers.TestDataUsageStatsProvider;
@@ -29,10 +29,10 @@ import static org.mockito.Mockito.verify;
 public class TrafficCopTest {
     @Test
     public void testOnPauseUnder() {
-        DataUsageAlertAdapter mockAdapter = mock(DataUsageAlertAdapter.class);
+        DataUsageAlertListener mockAdapter = mock(DataUsageAlertListener.class);
         TestDataUsageStatsProvider testProvider = new TestDataUsageStatsProvider();
         TrafficCop trafficCop = new TrafficCop.Builder()
-                .downloadWarningThreashold(Threshold.of(100, KILOBYTES).per(SECOND))
+                .downloadWarningThreshold(Threshold.of(100, KILOBYTES).per(SECOND))
                 .alert(mockAdapter)
                 .dataUsageStatsProvider(testProvider)
                 .create(Robolectric.application);
@@ -46,10 +46,10 @@ public class TrafficCopTest {
 
     @Test
     public void testOnPauseOver() {
-        DataUsageAlertAdapter mockAdapter = mock(DataUsageAlertAdapter.class);
+        DataUsageAlertListener mockAdapter = mock(DataUsageAlertListener.class);
         TestDataUsageStatsProvider testProvider = new TestDataUsageStatsProvider();
         TrafficCop trafficCop = new TrafficCop.Builder()
-                .downloadWarningThreashold(Threshold.of(100, KILOBYTES).per(SECOND))
+                .downloadWarningThreshold(Threshold.of(100, KILOBYTES).per(SECOND))
                 .alert(mockAdapter)
                 .dataUsageStatsProvider(testProvider)
                 .create(Robolectric.application);
@@ -64,10 +64,10 @@ public class TrafficCopTest {
 
     @Test
     public void testOnPauseAndResumeUnder() {
-        DataUsageAlertAdapter mockAdapter = mock(DataUsageAlertAdapter.class);
+        DataUsageAlertListener mockAdapter = mock(DataUsageAlertListener.class);
         TestDataUsageStatsProvider testProvider = new TestDataUsageStatsProvider();
         TrafficCop trafficCop = new TrafficCop.Builder()
-                .downloadWarningThreashold(Threshold.of(100, KILOBYTES).per(2, SECONDS))
+                .downloadWarningThreshold(Threshold.of(100, KILOBYTES).per(2, SECONDS))
                 .alert(mockAdapter)
                 .dataUsageStatsProvider(testProvider)
                 .create(Robolectric.application);
@@ -86,10 +86,10 @@ public class TrafficCopTest {
 
     @Test
     public void testOnPauseAndOverUnder() throws InterruptedException {
-        DataUsageAlertAdapter mockAdapter = mock(DataUsageAlertAdapter.class);
+        DataUsageAlertListener mockAdapter = mock(DataUsageAlertListener.class);
         TestDataUsageStatsProvider testProvider = new TestDataUsageStatsProvider();
         TrafficCop trafficCop = new TrafficCop.Builder()
-                .downloadWarningThreashold(Threshold.of(100, KILOBYTES).per(2, SECONDS))
+                .downloadWarningThreshold(Threshold.of(100, KILOBYTES).per(2, SECONDS))
                 .alert(mockAdapter)
                 .dataUsageStatsProvider(testProvider)
                 .create(Robolectric.application);
@@ -108,10 +108,10 @@ public class TrafficCopTest {
 
     @Test
     public void testOnPauseAndOverUnderOnce() throws InterruptedException {
-        DataUsageAlertAdapter mockAdapter = mock(DataUsageAlertAdapter.class);
+        DataUsageAlertListener mockAdapter = mock(DataUsageAlertListener.class);
         TestDataUsageStatsProvider testProvider = new TestDataUsageStatsProvider();
         TrafficCop trafficCop = new TrafficCop.Builder()
-                .downloadWarningThreashold(Threshold.of(100, KILOBYTES).per(1, SECONDS))
+                .downloadWarningThreshold(Threshold.of(100, KILOBYTES).per(1, SECONDS))
                 .alert(mockAdapter)
                 .dataUsageStatsProvider(testProvider)
                 .create(Robolectric.application);

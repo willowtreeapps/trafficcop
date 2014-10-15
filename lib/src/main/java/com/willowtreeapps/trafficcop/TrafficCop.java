@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Created by evantatarka on 10/7/14.
+ * A simple way to get detect data usage over a threshold.
  */
 public class TrafficCop {
     private static final String SHARED_PREFS_NAME = TrafficCop.class.getCanonicalName() + "_shared_prefs";
@@ -22,13 +22,13 @@ public class TrafficCop {
     private long startTime = -1;
     private long bytesTransmitted = -1;
     private long bytesReceived = -1;
-    private final List<DataUsageAlertAdapter> warningAdapters;
+    private final List<DataUsageAlertListener> warningAdapters;
     private final Threshold downloadWarningThreshold;
     private final Threshold uploadWarningThreshold;
     private final DataUsageStatsProvider dataUsageStatsProvider;
     private final SharedPreferences prefs;
 
-    private TrafficCop(Context context, List<DataUsageAlertAdapter> warningAdapters, Threshold downloadWarningThreshold, Threshold uploadWarningThreshold, DataUsageStatsProvider dataUsageStatsProvider) {
+    private TrafficCop(Context context, List<DataUsageAlertListener> warningAdapters, Threshold downloadWarningThreshold, Threshold uploadWarningThreshold, DataUsageStatsProvider dataUsageStatsProvider) {
         this.dataUsageStatsProvider = dataUsageStatsProvider;
         this.warningAdapters = warningAdapters;
         this.downloadWarningThreshold = downloadWarningThreshold;
@@ -36,12 +36,18 @@ public class TrafficCop {
         this.prefs = context.getSharedPreferences(SHARED_PREFS_NAME, Context.MODE_PRIVATE);
     }
 
+    /**
+     * Must be called in Activity.onResume();
+     */
     public void onResume() {
         startTime = dataUsageStatsProvider.getNanoTime();
         bytesTransmitted = dataUsageStatsProvider.getBytesTransmitted();
         bytesReceived = dataUsageStatsProvider.getBytesReceived();
     }
 
+    /**
+     * Must be called in Activity.onPause();
+     */
     public void onPause() {
         if (startTime == -1) {
             return;
@@ -62,7 +68,7 @@ public class TrafficCop {
         boolean hasWarnedDownload = false;
         if (downloadWarningThreshold.hasReached(downloadUsage)) {
             hasWarnedDownload = true;
-            for (DataUsageAlertAdapter adapter : warningAdapters) {
+            for (DataUsageAlertListener adapter : warningAdapters) {
                 adapter.alertThreshold(downloadWarningThreshold, downloadUsage);
             }
         }
@@ -70,7 +76,7 @@ public class TrafficCop {
         boolean hasWarnedUpload = false;
         if (uploadWarningThreshold.hasReached(uploadUsage)) {
             hasWarnedUpload = true;
-            for (DataUsageAlertAdapter adapter : warningAdapters) {
+            for (DataUsageAlertListener adapter : warningAdapters) {
                 adapter.alertThreshold(uploadWarningThreshold, uploadUsage);
             }
         }
@@ -96,23 +102,44 @@ public class TrafficCop {
         editor.apply();
     }
 
+    /**
+     * Constructs a new TrafficCop.
+     */
     public static class Builder {
-        private final List<DataUsageAlertAdapter> adapters = new ArrayList<DataUsageAlertAdapter>();
+        private final List<DataUsageAlertListener> adapters = new ArrayList<DataUsageAlertListener>();
         private Threshold downloadWarningThreshold = Threshold.none();
         private Threshold uploadWarningThreshold = Threshold.none();
         private DataUsageStatsProvider dataUsageStatsProvider;
 
-        public Builder alert(DataUsageAlertAdapter... adapters) {
-            this.adapters.addAll(Arrays.asList(adapters));
+        /**
+         * Register one or more listeners that will be called when your app's data usage goes over a threshold.
+         *
+         * @param listeners the listeners to register
+         * @return the builder for chaining
+         */
+        public Builder alert(DataUsageAlertListener... listeners) {
+            this.adapters.addAll(Arrays.asList(listeners));
             return this;
         }
 
-        public Builder alert(Collection<DataUsageAlertAdapter> adapters) {
-            this.adapters.addAll(adapters);
+        /**
+         * Register a collection of listeners that will be called when your app's data usage goes over a threshold.
+         *
+         * @param listeners the listeners to register
+         * @return the builder for chaining
+         */
+        public Builder alert(Collection<DataUsageAlertListener> listeners) {
+            this.adapters.addAll(listeners);
             return this;
         }
 
-        public Builder downloadWarningThreashold(Threshold threshold) {
+        /**
+         * Set the download threshold to be hit to notify the callback.
+         *
+         * @param threshold the threshold to hit
+         * @return the builder for chaining
+         */
+        public Builder downloadWarningThreshold(Threshold threshold) {
             if (threshold == null) {
                 throw new IllegalArgumentException("downloadWarningThreshold cannot be null");
             }
@@ -120,6 +147,12 @@ public class TrafficCop {
             return this;
         }
 
+        /**
+         * Set the upload threshold to be hit to notify the callback.
+         *
+         * @param threshold the threshold to hit
+         * @return the builder for caching
+         */
         public Builder uploadWarningThreshold(Threshold threshold) {
             if (threshold == null) {
                 throw new IllegalArgumentException("uploadWarningThreshold cannot be null");
@@ -128,11 +161,25 @@ public class TrafficCop {
             return this;
         }
 
+        /**
+         * Set the provider that collects the data usage stats. This does not need to be called by
+         * default, but you may provide another implementation for more complex monitoring or for
+         * testing.
+         *
+         * @param provider the provider
+         * @return the builder for caching
+         */
         public Builder dataUsageStatsProvider(DataUsageStatsProvider provider) {
             this.dataUsageStatsProvider = provider;
             return this;
         }
 
+        /**
+         * Construct the TrafficCop with the current configuration.
+         *
+         * @param context the context
+         * @return the TrafficCop
+         */
         public TrafficCop create(Context context) {
             if (dataUsageStatsProvider == null) {
                 dataUsageStatsProvider = new DataUsageStatsProviderImpl(context.getApplicationInfo().uid);

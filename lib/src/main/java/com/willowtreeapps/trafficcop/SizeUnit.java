@@ -1,7 +1,7 @@
 package com.willowtreeapps.trafficcop;
 
 /**
- * Created by evantatarka on 10/7/14.
+ * A size unit with the base of bytes.
  */
 public enum SizeUnit {
     BYTE(1), BYTES(1),
@@ -15,6 +15,12 @@ public enum SizeUnit {
         this.scale = scale;
     }
 
+    /**
+     * Converts the value from this unit to bytes
+     *
+     * @param value the size in this unit
+     * @return the size in bytes
+     */
     public long of(long value) {
         return value * scale;
     }
