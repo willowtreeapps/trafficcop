@@ -23,7 +23,8 @@ public class MyApplication extends Application {
                           // Alert somehow!
                       }
                   })
-                  .create(this);
+                  // Pass a string that uniqly identifies this instance.
+                  .create("myTrafficCop", this);
   }
   
   public static TrafficCop getTrafficCop() {
@@ -56,7 +57,7 @@ public class MyApplication extends Application {
   public void onCreate() {
     new TrafficCop.Builder()
     ...
-    .register(this);
+    .register("myTrafficCop", this);
   }
 }
 ```
