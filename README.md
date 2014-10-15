@@ -50,23 +50,13 @@ public class MyBaseActivity extends Activity {
 }
 ```
 
-Alternatively, you can just register a lifecycle callback.
+Alternatively, you can save some work by registering it with the application context.
 ```java
 public class MyApplication extends Application {
   public void onCreate() {
-    final TrafficCop trafficCop = ...
-    registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
-      @Override
-      public void onActivityResumed(Activity activity) {
-        trafficCop.onResume();
-      }
-  
-      @Override
-      public void onActivityPaused(Activity activity) {
-        trafficCop.onPause();
-      }
-      ...
-    });
+    new TrafficCop.Builder()
+    ...
+    .register(this);
   }
 }
 ```
