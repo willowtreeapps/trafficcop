@@ -32,12 +32,12 @@ public class TrafficCop {
     private final SharedPreferences prefs;
     private Application.ActivityLifecycleCallbacks activityLifecycleCallbacks;
 
-    private TrafficCop(Context context, List<DataUsageAlertListener> warningAdapters, Threshold downloadWarningThreshold, Threshold uploadWarningThreshold, DataUsageStatsProvider dataUsageStatsProvider) {
+    private TrafficCop(Context context, String id, List<DataUsageAlertListener> warningAdapters, Threshold downloadWarningThreshold, Threshold uploadWarningThreshold, DataUsageStatsProvider dataUsageStatsProvider) {
         this.dataUsageStatsProvider = dataUsageStatsProvider;
         this.warningAdapters = warningAdapters;
         this.downloadWarningThreshold = downloadWarningThreshold;
         this.uploadWarningThreshold = uploadWarningThreshold;
-        this.prefs = context.getSharedPreferences(SHARED_PREFS_NAME, Context.MODE_PRIVATE);
+        this.prefs = context.getSharedPreferences(SHARED_PREFS_NAME + id, Context.MODE_PRIVATE);
     }
 
     /**
@@ -242,11 +242,11 @@ public class TrafficCop {
          * @param context the context
          * @return the TrafficCop
          */
-        public TrafficCop create(Context context) {
+        public TrafficCop create(String id, Context context) {
             if (dataUsageStatsProvider == null) {
                 dataUsageStatsProvider = new DataUsageStatsProviderImpl(context.getApplicationInfo().uid);
             }
-            return new TrafficCop(context.getApplicationContext(), adapters, downloadWarningThreshold, uploadWarningThreshold, dataUsageStatsProvider);
+            return new TrafficCop(context.getApplicationContext(), id, adapters, downloadWarningThreshold, uploadWarningThreshold, dataUsageStatsProvider);
         }
 
         /**
@@ -257,8 +257,8 @@ public class TrafficCop {
          * @return the TrafficCop
          * @see TrafficCop#register(android.app.Application)
          */
-        public TrafficCop register(Application application) {
-            TrafficCop trafficCop = create(application);
+        public TrafficCop register(String id, Application application) {
+            TrafficCop trafficCop = create(id, application);
             trafficCop.register(application);
             return trafficCop;
         }
