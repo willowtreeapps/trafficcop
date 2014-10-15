@@ -1,8 +1,11 @@
 package com.willowtreeapps.trafficcop;
 
+import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.TrafficStats;
+import android.os.Bundle;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,6 +30,7 @@ public class TrafficCop {
     private final Threshold uploadWarningThreshold;
     private final DataUsageStatsProvider dataUsageStatsProvider;
     private final SharedPreferences prefs;
+    private Application.ActivityLifecycleCallbacks activityLifecycleCallbacks;
 
     private TrafficCop(Context context, List<DataUsageAlertListener> warningAdapters, Threshold downloadWarningThreshold, Threshold uploadWarningThreshold, DataUsageStatsProvider dataUsageStatsProvider) {
         this.dataUsageStatsProvider = dataUsageStatsProvider;
@@ -100,6 +104,64 @@ public class TrafficCop {
         }
 
         editor.apply();
+    }
+
+    /**
+     * Register the TrafficCop to the activity lifecycle. If you call this, you don't need to call
+     * {@link #onPause()}/{@link #onResume()}.
+     *
+     * @param application the application context.
+     */
+    public void register(Application application) {
+        application.registerActivityLifecycleCallbacks(activityLifecycleCallbacks = new Application.ActivityLifecycleCallbacks() {
+            @Override
+            public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+
+            }
+
+            @Override
+            public void onActivityStarted(Activity activity) {
+
+            }
+
+            @Override
+            public void onActivityResumed(Activity activity) {
+                onResume();
+            }
+
+            @Override
+            public void onActivityPaused(Activity activity) {
+                onPause();
+            }
+
+            @Override
+            public void onActivityStopped(Activity activity) {
+
+            }
+
+            @Override
+            public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+
+            }
+
+            @Override
+            public void onActivityDestroyed(Activity activity) {
+
+            }
+        });
+    }
+
+    /**
+     * Unregister the TrafficCop from the activity lifecycle. You may call this after
+     * {@link #register(android.app.Application)} if you no longer want to be notified.
+     *
+     * @param application the application context.
+     */
+    public void unregister(Application application) {
+        if (activityLifecycleCallbacks != null) {
+            application.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks);
+            activityLifecycleCallbacks = null;
+        }
     }
 
     /**
@@ -185,6 +247,18 @@ public class TrafficCop {
                 dataUsageStatsProvider = new DataUsageStatsProviderImpl(context.getApplicationInfo().uid);
             }
             return new TrafficCop(context.getApplicationContext(), adapters, downloadWarningThreshold, uploadWarningThreshold, dataUsageStatsProvider);
+        }
+
+        /**
+         * Construct the TrafficCop with the current configuration and register it to the activity
+         * lifecycle.
+         *
+         * @param application the application context.
+         * @return the TrafficCop
+         * @see TrafficCop#register(android.app.Application)
+         */
+        public TrafficCop register(Application application) {
+            create(application).register(application);
         }
     }
 
