@@ -41,15 +41,16 @@ public class TrafficCopTest {
         testProvider.incrementTime(1, SECOND);
         trafficCop.onPause();
 
-        verify(mockAdapter, never()).alertThreshold(any(DataUsage.class));
+        verify(mockAdapter, never()).alertThreshold(any(Threshold.class), any(DataUsage.class));
     }
 
     @Test
     public void testOnPauseOver() {
         DataUsageAlertListener mockAdapter = mock(DataUsageAlertListener.class);
         TestDataUsageStatsProvider testProvider = new TestDataUsageStatsProvider();
+        Threshold threshold = Threshold.of(100, KILOBYTES).per(SECOND);
         TrafficCop trafficCop = new TrafficCop.Builder()
-                .downloadWarningThreshold(Threshold.of(100, KILOBYTES).per(SECOND))
+                .downloadWarningThreshold(threshold)
                 .alert(mockAdapter)
                 .dataUsageStatsProvider(testProvider)
                 .create(Robolectric.application);
@@ -59,7 +60,7 @@ public class TrafficCopTest {
         testProvider.incrementReceived(100, KILOBYTES);
         trafficCop.onPause();
 
-        verify(mockAdapter).alertThreshold(DataUsage.download(100, KILOBYTES).in(1, SECOND));
+        verify(mockAdapter).alertThreshold(threshold, DataUsage.download(100, KILOBYTES).in(1, SECOND));
     }
 
     @Test
@@ -81,15 +82,16 @@ public class TrafficCopTest {
         testProvider.incrementReceived(40, KILOBYTES);
         trafficCop.onPause();
 
-        verify(mockAdapter, never()).alertThreshold(any(DataUsage.class));
+        verify(mockAdapter, never()).alertThreshold(any(Threshold.class), any(DataUsage.class));
     }
 
     @Test
     public void testOnPauseAndOverUnder() throws InterruptedException {
         DataUsageAlertListener mockAdapter = mock(DataUsageAlertListener.class);
         TestDataUsageStatsProvider testProvider = new TestDataUsageStatsProvider();
+        Threshold threshold = Threshold.of(100, KILOBYTES).per(2, SECONDS);
         TrafficCop trafficCop = new TrafficCop.Builder()
-                .downloadWarningThreshold(Threshold.of(100, KILOBYTES).per(2, SECONDS))
+                .downloadWarningThreshold(threshold)
                 .alert(mockAdapter)
                 .dataUsageStatsProvider(testProvider)
                 .create(Robolectric.application);
@@ -103,15 +105,16 @@ public class TrafficCopTest {
         testProvider.incrementReceived(50, KILOBYTES);
         trafficCop.onPause();
 
-        verify(mockAdapter).alertThreshold(DataUsage.download(100, KILOBYTES).in(2, SECONDS));
+        verify(mockAdapter).alertThreshold(threshold, DataUsage.download(100, KILOBYTES).in(2, SECONDS));
     }
 
     @Test
     public void testOnPauseAndOverUnderOnce() throws InterruptedException {
         DataUsageAlertListener mockAdapter = mock(DataUsageAlertListener.class);
         TestDataUsageStatsProvider testProvider = new TestDataUsageStatsProvider();
+        Threshold threshold = Threshold.of(100, KILOBYTES).per(1, SECONDS);
         TrafficCop trafficCop = new TrafficCop.Builder()
-                .downloadWarningThreshold(Threshold.of(100, KILOBYTES).per(1, SECONDS))
+                .downloadWarningThreshold(threshold)
                 .alert(mockAdapter)
                 .dataUsageStatsProvider(testProvider)
                 .create(Robolectric.application);
@@ -124,6 +127,6 @@ public class TrafficCopTest {
         testProvider.incrementTime(1, SECOND);
         trafficCop.onPause();
 
-        verify(mockAdapter, times(1)).alertThreshold(DataUsage.download(100, KILOBYTES).in(1, SECONDS));
+        verify(mockAdapter, times(1)).alertThreshold(threshold, DataUsage.download(100, KILOBYTES).in(1, SECONDS));
     }
 }

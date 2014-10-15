@@ -258,7 +258,9 @@ public class TrafficCop {
          * @see TrafficCop#register(android.app.Application)
          */
         public TrafficCop register(Application application) {
-            create(application).register(application);
+            TrafficCop trafficCop = create(application);
+            trafficCop.register(application);
+            return trafficCop;
         }
     }
 
