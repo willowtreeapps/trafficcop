@@ -50,4 +50,25 @@ public class MyBaseActivity extends Activity {
 }
 ```
 
+Alternatively, you an just register a lifecycle callback.
+```java
+public class MyApplication extends Application {
+  public void onCreate() {
+    final TrafficCop trafficCop = ...
+    registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
+      @Override
+      public void onActivityResumed(Activity activity) {
+        trafficCop.onResume();
+      }
+  
+      @Override
+      public void onActivityPaused(Activity activity) {
+        trafficCop.onPause();
+      }
+      ...
+    });
+  }
+}
+```
+
 That's it!
