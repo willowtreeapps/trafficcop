@@ -16,6 +16,7 @@ import java.util.List;
  * A simple way to get detect data usage over a threshold.
  */
 public class TrafficCop {
+    private static final List<String> TRAFFIC_COP_IDS = new ArrayList<String>();
     private static final String SHARED_PREFS_NAME = TrafficCop.class.getCanonicalName() + "_shared_prefs";
     private static final String PREFS_ELAPSED_SECONDS_DOWNLOAD = "elapsed_second_upload";
     private static final String PREFS_ELAPSED_SECONDS_UPLOAD = "elapsed_second_upload";
@@ -25,34 +26,49 @@ public class TrafficCop {
     private long startTime = -1;
     private long bytesTransmitted = -1;
     private long bytesReceived = -1;
-    private final List<DataUsageAlertListener> warningAdapters;
+    private final String id;
+    private final List<DataUsageAlertListener> dataUsageAlertListeners;
     private final Threshold downloadWarningThreshold;
     private final Threshold uploadWarningThreshold;
     private final DataUsageStatsProvider dataUsageStatsProvider;
     private final SharedPreferences prefs;
+    private Application application;
     private Application.ActivityLifecycleCallbacks activityLifecycleCallbacks;
+    private boolean isDestroyed;
 
-    private TrafficCop(Context context, String id, List<DataUsageAlertListener> warningAdapters, Threshold downloadWarningThreshold, Threshold uploadWarningThreshold, DataUsageStatsProvider dataUsageStatsProvider) {
+    private TrafficCop(Context context, String id, List<DataUsageAlertListener> dataUsageAlertListeners, Threshold downloadWarningThreshold, Threshold uploadWarningThreshold, DataUsageStatsProvider dataUsageStatsProvider) {
+        this.id = id;
         this.dataUsageStatsProvider = dataUsageStatsProvider;
-        this.warningAdapters = warningAdapters;
+        this.dataUsageAlertListeners = dataUsageAlertListeners;
         this.downloadWarningThreshold = downloadWarningThreshold;
         this.uploadWarningThreshold = uploadWarningThreshold;
         this.prefs = context.getSharedPreferences(SHARED_PREFS_NAME + id, Context.MODE_PRIVATE);
     }
 
     /**
-     * Must be called in Activity.onResume();
+     * Starts measuring data usage. If you are using
+     * {@link TrafficCop#register(android.app.Application)} then you don't need to call this.
      */
-    public void onResume() {
+    public void startMeasuring() {
+        if (isDestroyed) {
+            throw new IllegalStateException("The TrafficCop has been destroyed.");
+        }
+
         startTime = dataUsageStatsProvider.getNanoTime();
         bytesTransmitted = dataUsageStatsProvider.getBytesTransmitted();
         bytesReceived = dataUsageStatsProvider.getBytesReceived();
     }
 
     /**
-     * Must be called in Activity.onPause();
+     * Stops measuring data usage and possible triggers the listeners if a threshold is met. If you
+     * are using {@link TrafficCop#register(android.app.Application)} then you don't need to call
+     * this.
      */
-    public void onPause() {
+    public void stopMeasuring() {
+        if (isDestroyed) {
+            throw new IllegalStateException("The TrafficCop has been destroyed.");
+        }
+
         if (startTime == -1) {
             return;
         }
@@ -72,7 +88,7 @@ public class TrafficCop {
         boolean hasWarnedDownload = false;
         if (downloadWarningThreshold.hasReached(downloadUsage)) {
             hasWarnedDownload = true;
-            for (DataUsageAlertListener adapter : warningAdapters) {
+            for (DataUsageAlertListener adapter : dataUsageAlertListeners) {
                 adapter.alertThreshold(downloadWarningThreshold, downloadUsage);
             }
         }
@@ -80,7 +96,7 @@ public class TrafficCop {
         boolean hasWarnedUpload = false;
         if (uploadWarningThreshold.hasReached(uploadUsage)) {
             hasWarnedUpload = true;
-            for (DataUsageAlertListener adapter : warningAdapters) {
+            for (DataUsageAlertListener adapter : dataUsageAlertListeners) {
                 adapter.alertThreshold(uploadWarningThreshold, uploadUsage);
             }
         }
@@ -108,11 +124,16 @@ public class TrafficCop {
 
     /**
      * Register the TrafficCop to the activity lifecycle. If you call this, you don't need to call
-     * {@link #onPause()}/{@link #onResume()}.
+     * {@link #stopMeasuring()}/{@link #startMeasuring()}.
      *
      * @param application the application context.
      */
-    public void register(Application application) {
+    public void register(final Application application) {
+        if (isDestroyed) {
+            throw new IllegalStateException("The TrafficCop has been destroyed.");
+        }
+
+        this.application = application;
         application.registerActivityLifecycleCallbacks(activityLifecycleCallbacks = new Application.ActivityLifecycleCallbacks() {
             @Override
             public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
@@ -126,12 +147,12 @@ public class TrafficCop {
 
             @Override
             public void onActivityResumed(Activity activity) {
-                onResume();
+                startMeasuring();
             }
 
             @Override
             public void onActivityPaused(Activity activity) {
-                onPause();
+                stopMeasuring();
             }
 
             @Override
@@ -154,14 +175,24 @@ public class TrafficCop {
     /**
      * Unregister the TrafficCop from the activity lifecycle. You may call this after
      * {@link #register(android.app.Application)} if you no longer want to be notified.
-     *
-     * @param application the application context.
      */
-    public void unregister(Application application) {
+    public void unregister() {
         if (activityLifecycleCallbacks != null) {
             application.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks);
             activityLifecycleCallbacks = null;
+            application = null;
         }
+    }
+
+    /**
+     * Destroys the TrafficCop. You cannot call any other methods on this traffic cop after calling
+     * this method, but you are now free to create another one with the same id.
+     */
+    public void destroy() {
+        isDestroyed = true;
+        TRAFFIC_COP_IDS.remove(id);
+        prefs.edit().clear().apply();
+        unregister();
     }
 
     /**
@@ -243,6 +274,11 @@ public class TrafficCop {
          * @return the TrafficCop
          */
         public TrafficCop create(String id, Context context) {
+            if (TRAFFIC_COP_IDS.contains(id)) {
+                throw new IllegalArgumentException("A TrafficCop with id '" + id + "' has already been created.");
+            }
+            TRAFFIC_COP_IDS.add(id);
+
             if (dataUsageStatsProvider == null) {
                 dataUsageStatsProvider = new DataUsageStatsProviderImpl(context.getApplicationInfo().uid);
             }

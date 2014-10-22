@@ -35,13 +35,14 @@ public class TrafficCopTest {
                 .downloadWarningThreshold(Threshold.of(100, KILOBYTES).per(SECOND))
                 .alert(mockAdapter)
                 .dataUsageStatsProvider(testProvider)
-                .create(Robolectric.application);
+                .create("test", Robolectric.application);
 
-        trafficCop.onResume();
+        trafficCop.startMeasuring();
         testProvider.incrementTime(1, SECOND);
-        trafficCop.onPause();
+        trafficCop.stopMeasuring();
 
         verify(mockAdapter, never()).alertThreshold(any(Threshold.class), any(DataUsage.class));
+        trafficCop.destroy();
     }
 
     @Test
@@ -53,14 +54,15 @@ public class TrafficCopTest {
                 .downloadWarningThreshold(threshold)
                 .alert(mockAdapter)
                 .dataUsageStatsProvider(testProvider)
-                .create(Robolectric.application);
+                .create("test", Robolectric.application);
 
-        trafficCop.onResume();
+        trafficCop.startMeasuring();
         testProvider.incrementTime(1, SECOND);
         testProvider.incrementReceived(100, KILOBYTES);
-        trafficCop.onPause();
+        trafficCop.stopMeasuring();
 
         verify(mockAdapter).alertThreshold(threshold, DataUsage.download(100, KILOBYTES).in(1, SECOND));
+        trafficCop.destroy();
     }
 
     @Test
@@ -71,18 +73,19 @@ public class TrafficCopTest {
                 .downloadWarningThreshold(Threshold.of(100, KILOBYTES).per(2, SECONDS))
                 .alert(mockAdapter)
                 .dataUsageStatsProvider(testProvider)
-                .create(Robolectric.application);
+                .create("test", Robolectric.application);
 
-        trafficCop.onResume();
+        trafficCop.startMeasuring();
         testProvider.incrementTime(1, SECOND);
         testProvider.incrementReceived(40, KILOBYTES);
-        trafficCop.onPause();
-        trafficCop.onResume();
+        trafficCop.stopMeasuring();
+        trafficCop.startMeasuring();
         testProvider.incrementTime(1, SECOND);
         testProvider.incrementReceived(40, KILOBYTES);
-        trafficCop.onPause();
+        trafficCop.stopMeasuring();
 
         verify(mockAdapter, never()).alertThreshold(any(Threshold.class), any(DataUsage.class));
+        trafficCop.destroy();
     }
 
     @Test
@@ -94,18 +97,19 @@ public class TrafficCopTest {
                 .downloadWarningThreshold(threshold)
                 .alert(mockAdapter)
                 .dataUsageStatsProvider(testProvider)
-                .create(Robolectric.application);
+                .create("test", Robolectric.application);
 
-        trafficCop.onResume();
+        trafficCop.startMeasuring();
         testProvider.incrementTime(1, SECOND);
         testProvider.incrementReceived(50, KILOBYTES);
-        trafficCop.onPause();
-        trafficCop.onResume();
+        trafficCop.stopMeasuring();
+        trafficCop.startMeasuring();
         testProvider.incrementTime(1, SECOND);
         testProvider.incrementReceived(50, KILOBYTES);
-        trafficCop.onPause();
+        trafficCop.stopMeasuring();
 
         verify(mockAdapter).alertThreshold(threshold, DataUsage.download(100, KILOBYTES).in(2, SECONDS));
+        trafficCop.destroy();
     }
 
     @Test
@@ -117,16 +121,23 @@ public class TrafficCopTest {
                 .downloadWarningThreshold(threshold)
                 .alert(mockAdapter)
                 .dataUsageStatsProvider(testProvider)
-                .create(Robolectric.application);
+                .create("test", Robolectric.application);
 
-        trafficCop.onResume();
+        trafficCop.startMeasuring();
         testProvider.incrementTime(1, SECOND);
         testProvider.incrementReceived(100, KILOBYTES);
-        trafficCop.onPause();
-        trafficCop.onResume();
+        trafficCop.stopMeasuring();
+        trafficCop.startMeasuring();
         testProvider.incrementTime(1, SECOND);
-        trafficCop.onPause();
+        trafficCop.stopMeasuring();
 
         verify(mockAdapter, times(1)).alertThreshold(threshold, DataUsage.download(100, KILOBYTES).in(1, SECONDS));
+        trafficCop.destroy();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testCreatingMultipleWithSameIdFails() {
+        new TrafficCop.Builder().create("test", Robolectric.application);
+        new TrafficCop.Builder().create("test", Robolectric.application);
     }
 }
