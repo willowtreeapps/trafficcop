@@ -72,30 +72,30 @@ if (project.hasProperty('sonatype.username') && project.hasProperty('sonatype.pa
                             userName: project.getProperty('sonatype.username'),
                             password: project.getProperty('sonatype.password'))
                 }
-            }
-        }
 
-        pom.project {
-            name 'Traffic Cop'
-            packaging 'aar'
-            description 'Monitor your Android app\'s data usage so you can take action if it\'s over a threshold.'
-            url 'https://github.com/willowtreeapps/trafficcop'
-            scm {
-                url 'git@github.com:willowtreeapps/trafficcop.git'
-                connection 'scm:git:git@github.com:willowtreeapps/trafficcop.git'
-                developerConnection 'scm:git:git@github.com:willowtreeapps/trafficcop.git'
-            }
-            licenses {
-                license {
-                    name 'The Apache Software License, Version 2.0'
-                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    distribution 'repo'
-                }
-            }
-            developers {
-                developer {
-                    id 'evant'
-                    name 'Evan Tatarka'
+                pom.project {
+                    name 'Traffic Cop'
+                    packaging 'aar'
+                    description 'Monitor your Android app\'s data usage so you can take action if it\'s over a threshold.'
+                    url 'https://github.com/willowtreeapps/trafficcop'
+                    scm {
+                        url 'git@github.com:willowtreeapps/trafficcop.git'
+                        connection 'scm:git:git@github.com:willowtreeapps/trafficcop.git'
+                        developerConnection 'scm:git:git@github.com:willowtreeapps/trafficcop.git'
+                    }
+                    licenses {
+                        license {
+                            name 'The Apache Software License, Version 2.0'
+                            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                            distribution 'repo'
+                        }
+                    }
+                    developers {
+                        developer {
+                            id 'evant'
+                            name 'Evan Tatarka'
+                        }
+                    }
                 }
             }
         }
